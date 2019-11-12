@@ -67,6 +67,10 @@ int main()
 	c2AABB aabb_player;
 	aabb_player.min = c2V(player.getAnimatedSprite().getPosition().x, player.getAnimatedSprite().getPosition().y);
 	aabb_player.max = c2V(player.getAnimatedSprite().getGlobalBounds().width / 6, player.getAnimatedSprite().getGlobalBounds().width / 6);
+	
+
+	//Setting Collision Bounding Rectangle
+	sf::Rect playerCollider
 
 
 	// Initialize Input
@@ -184,10 +188,10 @@ int main()
 		window.clear();
 
 		// Draw the Players Current Animated Sprite
-		window.draw(player.getAnimatedSprite());
+		//window.draw(player.getAnimatedSprite());
 
 		// Draw the NPC's Current Animated Sprite
-		window.draw(npc.getAnimatedSprite());
+		//window.draw(npc.getAnimatedSprite());
 
 		// Update the window
 		window.display();
