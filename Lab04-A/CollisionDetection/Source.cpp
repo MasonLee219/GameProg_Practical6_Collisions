@@ -100,12 +100,13 @@ int main() {
 	//Box to Box collision
 	Box positivecase_box1;
 	Box positivecase_box2;
-	Box negativecase_box;
+	Box negativecase_box1;
+	Box negativecase_box2;
 
 	positivecase_box1.p.x = 0;
 	positivecase_box1.p.y = 2;
-	positivecase_box1.w = 1;
-	positivecase_box1.h = 1;
+	positivecase_box1.w = 3;
+	positivecase_box1.h = 3;
 
 	positivecase_box2.p.x = 1;
 	positivecase_box2.p.y = 4;
@@ -113,10 +114,16 @@ int main() {
 	positivecase_box2.h = 2;
 
 
-	negativecase_box.p.x = 1;
-	negativecase_box.p.y = 4;
-	negativecase_box.w = 1;
-	negativecase_box.h = 2;
+	negativecase_box1.p.x = 1;
+	negativecase_box1.p.y = 4;
+	negativecase_box1.w = 1;
+	negativecase_box1.h = 2;
+
+	negativecase_box2.p.x = 7;
+	negativecase_box2.p.y = 9;
+	negativecase_box2.w = 1;
+	negativecase_box2.h = 2;
+
 	while (true) {
 
 		// Point Collision check
@@ -185,12 +192,37 @@ int main() {
 		}
 		
 		//Box to box collision, positive case
-		if (((positivecase_box1.p.x + positivecase_box1.w) < positivecase_box2.p.x && (positivecase_box2.p.x + positivecase_box2.w) > positivecase_box1.p.x))			
+		if (((positivecase_box1.p.x + positivecase_box1.w) > positivecase_box2.p.x && 
+			(positivecase_box2.p.x + positivecase_box2.w) > positivecase_box1.p.x) && 
+			(positivecase_box1.p.y + positivecase_box1.h) > positivecase_box2.p.y &&
+			(positivecase_box2.p.y + positivecase_box2.h) > positivecase_box1.p.y)
 		{
-			if (((positivecase_box1.p.y + positivecase_box1.h) < positivecase_box2.p.y && (positivecase_box2.p.y + positivecase_box2.h) > positivecase_box1.p.y))
-			{
+			cout << "Box to box collision" << endl;
+			positivecase_box1.print();
+			positivecase_box2.print();
+		}
+		else
+		{
+			cout << "No Collision" << endl;
+			positivecase_box1.print();
+			positivecase_box2.print();
+		}
 
-			}
+		////Box to box collision, negative case
+		if (((negativecase_box1.p.x + negativecase_box1.w) > negativecase_box2.p.x &&
+			(negativecase_box2.p.x + negativecase_box2.w) > negativecase_box1.p.x) &&
+			(negativecase_box1.p.y + negativecase_box1.h) > negativecase_box2.p.y &&
+			(negativecase_box2.p.y + negativecase_box2.h) > negativecase_box1.p.y)
+		{
+			cout << "Box to box collision" << endl;
+			negativecase_box1.print();
+			negativecase_box2.print();
+		}
+		else
+		{
+			cout << "No Collision" << endl;
+			negativecase_box1.print();
+			negativecase_box2.print();
 		}
 	}
 
