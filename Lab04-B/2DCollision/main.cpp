@@ -70,8 +70,15 @@ int main()
 	
 
 	//Setting Collision Bounding Rectangle
-	sf::Rect playerCollider
-
+	sf::RectangleShape playerCollider;
+	playerCollider.setOutlineColor(sf::Color(0, 255, 0));
+	playerCollider.setSize(sf::Vector2f(84, 84));
+	playerCollider.setOutlineThickness(3.0f);
+	
+	sf::RectangleShape npcCollider;
+	npcCollider.setOutlineColor(sf::Color(0, 255, 0));
+	npcCollider.setSize(sf::Vector2f(84, 84));
+	npcCollider.setOutlineThickness(3.0f);
 
 	// Initialize Input
 	Input input;
@@ -87,6 +94,8 @@ int main()
 	{
 		// Move Sprite Follow Mouse
 		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+		playerCollider.setPosition(player.getAnimatedSprite().getPosition());
+		npcCollider.setPosition(npc.getAnimatedSprite().getPosition());
 		
 		// Move The NPC
 		sf::Vector2f move_to(npc.getAnimatedSprite().getPosition().x + direction.x, npc.getAnimatedSprite().getPosition().y + direction.y);
@@ -178,20 +187,24 @@ int main()
 		result = c2AABBtoAABB(aabb_player, aabb_npc);
 		cout << ((result != 0) ? ("Collision") : "") << endl;
 		if (result){
-			player.getAnimatedSprite().setColor(sf::Color(255,0,0));
+			playerCollider.setOutlineThickness(3);
+			playerCollider.setOutlineColor(sf::Color(255, 0, 0));
+			npcCollider.setOutlineColor(sf::Color(255, 0, 0));
 		}
 		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+			playerCollider.setOutlineColor(sf::Color(0, 255, 0));
+			npcCollider.setOutlineColor(sf::Color(0, 255, 0));
 		}
 
 		// Clear screen
 		window.clear();
 
-		// Draw the Players Current Animated Sprite
-		//window.draw(player.getAnimatedSprite());
-
-		// Draw the NPC's Current Animated Sprite
-		//window.draw(npc.getAnimatedSprite());
+		//Draw the Players Current Animated Sprite
+		window.draw(player.getAnimatedSprite());
+		window.draw(playerCollider);
+		window.draw(npcCollider);
+		//Draw the NPC's Current Animated Sprite
+		window.draw(npc.getAnimatedSprite());
 
 		// Update the window
 		window.display();
