@@ -68,6 +68,11 @@ int main()
 	aabb_player.min = c2V(player.getAnimatedSprite().getPosition().x, player.getAnimatedSprite().getPosition().y);
 	aabb_player.max = c2V(player.getAnimatedSprite().getGlobalBounds().width / 6, player.getAnimatedSprite().getGlobalBounds().width / 6);
 	
+	//setting up NPC shapes
+	c2Capsule capsule_npc;
+	
+	
+
 
 	//Setting Collision Bounding Rectangle
 	sf::RectangleShape playerCollider;
@@ -79,6 +84,26 @@ int main()
 	npcCollider.setOutlineColor(sf::Color(0, 255, 0));
 	npcCollider.setSize(sf::Vector2f(84, 84));
 	npcCollider.setOutlineThickness(3.0f);
+
+	//setting up capsules
+	sf::RectangleShape npc_capsuleRect;
+	npc_capsuleRect.setSize(sf::Vector2f(84,83));
+	npc_capsuleRect.setPosition(sf::Vector2f(160, 301));
+
+	sf::CircleShape npc_capsuleCircleLeft;
+	npc_capsuleCircleLeft.setRadius(43);
+	npc_capsuleCircleLeft.setPosition(sf::Vector2f(118, 300));
+
+	sf::CircleShape npc_capsuleCircleRight;
+	npc_capsuleCircleRight.setRadius(43);
+	npc_capsuleCircleRight.setPosition(sf::Vector2f(192, 300));
+
+	//setting Polygons
+	sf::VertexArray npc_polygon(sf::Triangles, 3);
+
+	npc_polygon[0] = sf::Vector2f(50.0, 50.0);
+	npc_polygon[1] = sf::Vector2f(75.0, 50.0);
+	npc_polygon[2] = sf::Vector2f(62.5, 70.0);
 
 	// Initialize Input
 	Input input;
@@ -203,6 +228,9 @@ int main()
 		window.draw(player.getAnimatedSprite());
 		window.draw(playerCollider);
 		window.draw(npcCollider);
+		window.draw(npc_capsuleRect);
+		window.draw(npc_capsuleCircleLeft);
+		window.draw(npc_capsuleCircleRight);
 		//Draw the NPC's Current Animated Sprite
 		window.draw(npc.getAnimatedSprite());
 
