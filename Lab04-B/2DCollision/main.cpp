@@ -80,7 +80,7 @@ int main()
 	npc_capsuleCircleRight.setPosition(sf::Vector2f(191, 300));
 
 	//setting up rays
-	sf::Vertex npc_ray_start = { 500,500 };
+	sf::Vertex npc_ray_start = sf::Vertex(sf::Vector2f(500, 500));
 	sf::Vertex npc_ray_end = sf::Vertex(sf::Vector2f(700, 500));
 	sf::Vertex npc_ray[] =
 	{
@@ -123,8 +123,8 @@ int main()
 	poly_npc.verts[2] = c2V(250.0, 100.0);
 
 	c2Ray ray_npc;
-	ray_npc.p = c2V(npc_ray_start);
-	ray_npc.d = c2Norm(c2V(1, 0));
+	ray_npc.p = c2V(npc_ray_start.position.x,npc_ray_start.position.y);
+	ray_npc.d = c2Norm(c2V(200, 0));
 	ray_npc.t = 200;
 	
 
