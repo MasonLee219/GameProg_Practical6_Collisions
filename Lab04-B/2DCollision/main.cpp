@@ -11,11 +11,18 @@
 
 using namespace std;
 
+//declaring the player shape state enum
+enum ShapeState {AABB, CIRCLE, RAY };
+
 int main()
 {
 	// Create the main window
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 
+	//Making an instance of the player shape state enum
+	ShapeState playerState;
+	playerState = AABB;
+	
 	// Load a NPC's sprites to display
 	sf::Texture npc_texture;
 	if (!npc_texture.loadFromFile("assets\\grid.png")) {
@@ -29,6 +36,8 @@ int main()
 		DEBUG_MSG("Failed to load file");
 		return EXIT_FAILURE;
 	}
+
+	
 
 	// Setup NPC's Default Animated Sprite
 	AnimatedSprite npc_animated_sprite(npc_texture);
@@ -53,11 +62,6 @@ int main()
 
 	// Setup the Player
 	GameObject& player = Player(player_animated_sprite);
-	
-	// Bools to draw the player shapes
-	bool drawPlayerAABB = true;
-	bool drawPlayerCircle = false;	
-	bool drawPlayerRay = false;
 
 	//Setting Collision Bounding Rectangle
 	sf::RectangleShape playerCollider;
@@ -70,7 +74,7 @@ int main()
 	npcCollider.setSize(sf::Vector2f(84, 84));
 	npcCollider.setOutlineThickness(3.0f);
 
-	//setting up capsules
+	//setting up npc capsule
 	sf::RectangleShape npc_capsuleRect;
 	npc_capsuleRect.setSize(sf::Vector2f(84, 84));
 	npc_capsuleRect.setPosition(sf::Vector2f(160, 300));
@@ -90,6 +94,12 @@ int main()
 	npc_polygon[2] = sf::Vector2f(250.0, 100.0);
 
 	//setting up rays
+	sf::Vertex player_ray_start = sf::Vertex(sf::Vector2f(300, 300));
+	sf::Vertex player_ray_end = sf::Vertex(sf::Vector2f(500, 300));
+	sf::Vector2f player_ray_dv = player_ray_end.position - player_ray_start.position;
+	float player_ray_magnitude = sqrt(player_ray_dv.x * player_ray_dv.x + player_ray_dv.y * player_ray_dv.y);
+	sf::Vector2f player_ray_unitVector = player_ray_dv / player_ray_magnitude;
+
 	sf::Vertex npc_ray_start = sf::Vertex(sf::Vector2f(500, 500));
 	sf::Vertex npc_ray_end = sf::Vertex(sf::Vector2f(700, 500));
 	sf::Vector2f npc_ray_dv = npc_ray_end.position - npc_ray_start.position;
@@ -102,16 +112,40 @@ int main()
 		sf::Vertex(npc_ray_end)
 	};
 
+	sf::Vertex player_ray[] =
+	{
+		sf::Vertex(player_ray_start),
+		sf::Vertex(player_ray_end)
+	};
+
 	//setting up circles
 	sf::CircleShape npc_circle;
 	npc_circle.setRadius(50);
 	npc_circle.setPosition(sf::Vector2f(500,300));
 
-	//Setup AABBs
+	sf::CircleShape player_circle;
+	npc_circle.setRadius(50);
+	npc_circle.setPosition(sf::Vector2f(500, 300));
+
+//Setup Player shapes
+	//setting up player aabb
 	c2AABB aabb_player;
 	aabb_player.min = c2V(player.getAnimatedSprite().getPosition().x, player.getAnimatedSprite().getPosition().y);
 	aabb_player.max = c2V(player.getAnimatedSprite().getGlobalBounds().width / 6, player.getAnimatedSprite().getGlobalBounds().width / 6);
 
+	//setting up player ray
+	c2Ray ray_player;
+	ray_player.p = { player_ray_start.position.x,player_ray_start.position.y };
+	ray_player.d = { player_ray_unitVector.x,player_ray_unitVector.y };
+	ray_player.t = player_ray_magnitude;
+
+	//setting up playercircle
+	c2Circle circle_player;
+	circle_player.p = c2V(player_circle.getPosition().x, player_circle.getPosition().y);
+	circle_player.r = player_circle.getRadius();
+	
+//setting up NPC shapes
+	//setting up npc AABB
 	c2AABB aabb_npc;
 	aabb_npc.min = c2V(npc.getAnimatedSprite().getPosition().x, npc.getAnimatedSprite().getPosition().y);
 	aabb_npc.max = c2V(
@@ -119,8 +153,6 @@ int main()
 		npc.getAnimatedSprite().getGlobalBounds().width,
 		npc.getAnimatedSprite().getPosition().y +
 		npc.getAnimatedSprite().getGlobalBounds().height);
-	
-//setting up NPC shapes
 
 	//setting up npc capsule
 	c2Capsule capsule_npc;
@@ -151,7 +183,7 @@ int main()
 	// Initialize Input
 	Input input;
 
-	// Collision aabb_to_aabb
+	// Collisions for player aabb
 	int aabb_to_aabb = 0;
 	int aabb_to_capsule = 0;
 	int aabb_to_poly = 0;
@@ -167,6 +199,25 @@ int main()
 		playerCollider.setPosition(player.getAnimatedSprite().getPosition());
 		npcCollider.setPosition(npc.getAnimatedSprite().getPosition());
 		
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+		{
+			cout << "Player AABB Drawing" << endl;
+			playerState = AABB;
+		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		{
+			cout << "Player Circle Drawing" << endl;
+			playerState = CIRCLE;
+		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		{
+			cout << "Player Ray Drawing" << endl;
+			playerState = RAY;
+		}
+
 		// Move The NPC
 		sf::Vector2f move_to(npc.getAnimatedSprite().getPosition().x + direction.x, npc.getAnimatedSprite().getPosition().y + direction.y);
 
@@ -242,6 +293,9 @@ int main()
 				input.setCurrent(Input::Action::IDLE);
 				break;
 			}
+
+							
+												
 		}
 
 		// Handle input to Player
