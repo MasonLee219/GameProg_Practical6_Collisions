@@ -94,15 +94,15 @@ int main()
 	npc_polygon[2] = sf::Vector2f(250.0, 100.0);
 
 	//setting up rays
-	sf::Vertex player_ray_start = sf::Vertex(sf::Vector2f(300, 300));
-	sf::Vertex player_ray_end = sf::Vertex(sf::Vector2f(500, 300));
-	sf::Vector2f player_ray_dv = player_ray_end.position - player_ray_start.position;
+	sf::Vector2f player_ray_start (300, 300);
+	sf::Vector2f player_ray_end(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+	sf::Vector2f player_ray_dv = player_ray_end - player_ray_start;
 	float player_ray_magnitude = sqrt(player_ray_dv.x * player_ray_dv.x + player_ray_dv.y * player_ray_dv.y);
 	sf::Vector2f player_ray_unitVector = player_ray_dv / player_ray_magnitude;
 
-	sf::Vertex npc_ray_start = sf::Vertex(sf::Vector2f(500, 500));
-	sf::Vertex npc_ray_end = sf::Vertex(sf::Vector2f(700, 500));
-	sf::Vector2f npc_ray_dv = npc_ray_end.position - npc_ray_start.position;
+	sf::Vector2f npc_ray_start(500, 500);
+	sf::Vector2f npc_ray_end(700, 500);
+	sf::Vector2f npc_ray_dv = npc_ray_end - npc_ray_start;
 	float npc_ray_magnitude = sqrt(npc_ray_dv.x * npc_ray_dv.x + npc_ray_dv.y * npc_ray_dv.y);
 	sf::Vector2f npc_ray_unitVector = npc_ray_dv / npc_ray_magnitude;
 
@@ -124,8 +124,8 @@ int main()
 	npc_circle.setPosition(sf::Vector2f(500,300));
 
 	sf::CircleShape player_circle;
-	npc_circle.setRadius(50);
-	npc_circle.setPosition(sf::Vector2f(500, 300));
+	player_circle.setRadius(50);
+	player_circle.setPosition(sf::Vector2f(200, 300));
 
 //Setup Player shapes
 	//setting up player aabb
@@ -135,13 +135,13 @@ int main()
 
 	//setting up player ray
 	c2Ray ray_player;
-	ray_player.p = { player_ray_start.position.x,player_ray_start.position.y };
+	ray_player.p = { player_ray_start.x, player_ray_start.y };
 	ray_player.d = { player_ray_unitVector.x,player_ray_unitVector.y };
 	ray_player.t = player_ray_magnitude;
 
 	//setting up playercircle
 	c2Circle circle_player;
-	circle_player.p = c2V(player_circle.getPosition().x, player_circle.getPosition().y);
+	circle_player.p = c2V(player_circle.getPosition().x + player_circle.getRadius(), player_circle.getPosition().y + player_circle.getRadius());
 	circle_player.r = player_circle.getRadius();
 	
 //setting up NPC shapes
@@ -169,7 +169,7 @@ int main()
 
 	//setting up npc ray
 	c2Ray ray_npc;
-	ray_npc.p = { npc_ray_start.position.x,npc_ray_start.position.y };
+	ray_npc.p = { npc_ray_start.x,npc_ray_start.y };
 	ray_npc.d = {npc_ray_unitVector.x, npc_ray_unitVector.y};
 	ray_npc.t = npc_ray_magnitude;
 	
@@ -183,10 +183,22 @@ int main()
 	// Initialize Input
 	Input input;
 
-	// Collisions for player aabb
+	//Collisions checks for player aabb
 	int aabb_to_aabb = 0;
 	int aabb_to_capsule = 0;
 	int aabb_to_poly = 0;
+
+	//Collision checks for player circle
+	int circle_to_aabb = 0;
+	int circle_to_capsule = 0;
+	int circle_to_poly = 0;
+	int circle_to_ray = 0;
+	int circle_to_circle = 0;
+	
+	//Collision checks for player ray
+	int ray_to_capsule = 0;
+	int ray_to_poly = 0;
+	int ray_to_circle = 0;
 
 	// Direction of movement of NPC
 	sf::Vector2f direction(0.1f, 0.2f);
@@ -198,8 +210,21 @@ int main()
 		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 		playerCollider.setPosition(player.getAnimatedSprite().getPosition());
 		npcCollider.setPosition(npc.getAnimatedSprite().getPosition());
+		player_circle.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+		circle_player.p = c2V(player_circle.getPosition().x, player_circle.getPosition().y);
+
+		player_ray_end = sf::Vector2f(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+		player_ray[1].position = player_ray_end;
 		
 
+		sf::Vector2f player_ray_dv = player_ray_end - player_ray_start;
+		float player_ray_magnitude = sqrt(player_ray_dv.x * player_ray_dv.x + player_ray_dv.y * player_ray_dv.y);
+		sf::Vector2f player_ray_unitVector = player_ray_dv / player_ray_magnitude;
+
+		ray_player.p = c2V(player_ray_start.x, player_ray_start.y);
+		ray_player.d = { player_ray_unitVector.x,player_ray_unitVector.y };
+		ray_player.t = player_ray_magnitude;
+	
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		{
 			cout << "Player AABB Drawing" << endl;
@@ -307,74 +332,144 @@ int main()
 		// Update the Player
 		npc.update();
 
-		// Check for collisions
-		//AABB to AABB
-		aabb_to_aabb = c2AABBtoAABB(aabb_player, aabb_npc);
-		std::cout << ((aabb_to_aabb != 0) ? ("AABB to AABB Collision") : "") << endl;
-		if (aabb_to_aabb){
-			playerCollider.setOutlineThickness(3);
-			playerCollider.setOutlineColor(sf::Color(255, 0, 0));
-			npcCollider.setOutlineColor(sf::Color(255, 0, 0));
-		}
-		else {
-			playerCollider.setOutlineColor(sf::Color(0, 255, 0));
-			npcCollider.setOutlineColor(sf::Color(0, 255, 0));
-		}
-		//Player AABB to NPC_Capsule
-		aabb_to_capsule = c2AABBtoCapsule(aabb_player, capsule_npc);
-		std::cout << ((aabb_to_capsule != 0) ? ("AABB to Capsule	Collision") : "") << endl;
-		if (aabb_to_capsule)
+// Check for collisions
+	//AABB Collisions
+		if (playerState == AABB)
 		{
-			playerCollider.setOutlineColor(sf::Color(255, 0, 0));
-			npc_capsuleRect.setFillColor(sf::Color(0, 255, 255));
-			npc_capsuleCircleLeft.setFillColor(sf::Color(0, 255, 255));
-			npc_capsuleCircleRight.setFillColor(sf::Color(0, 255, 255));
+			//AABB to AABB
+			aabb_to_aabb = c2AABBtoAABB(aabb_player, aabb_npc);
+			std::cout << ((aabb_to_aabb != 0) ? ("AABB to AABB Collision") : "") << endl;
+			if (aabb_to_aabb) {
+				playerCollider.setOutlineThickness(3);
+				playerCollider.setOutlineColor(sf::Color(255, 0, 0));
+				npcCollider.setOutlineColor(sf::Color(255, 0, 0));
+			}
+			else {
+				playerCollider.setOutlineColor(sf::Color(0, 255, 0));
+				npcCollider.setOutlineColor(sf::Color(0, 255, 0));
+			}
+			//Player AABB to NPC_Capsule
+			aabb_to_capsule = c2AABBtoCapsule(aabb_player, capsule_npc);
+			std::cout << ((aabb_to_capsule != 0) ? ("AABB to Capsule Collision") : "") << endl;
+			if (aabb_to_capsule)
+			{
+				playerCollider.setOutlineColor(sf::Color(255, 0, 0));
+				npc_capsuleRect.setFillColor(sf::Color(0, 255, 255));
+				npc_capsuleCircleLeft.setFillColor(sf::Color(0, 255, 255));
+				npc_capsuleCircleRight.setFillColor(sf::Color(0, 255, 255));
+			}
+			else
+			{
+				playerCollider.setOutlineColor(sf::Color(0, 255, 0));
+				npc_capsuleRect.setFillColor(sf::Color(255, 255, 255));
+				npc_capsuleCircleLeft.setFillColor(sf::Color(255, 255, 255));
+				npc_capsuleCircleRight.setFillColor(sf::Color(255, 255, 255));
+			}
+
+			aabb_to_poly = c2AABBtoPoly(aabb_player, &poly_npc, NULL);
+			std::cout << ((aabb_to_poly != 0) ? ("AABB to Poly Collision") : "") << endl;
+			if (aabb_to_poly)
+			{
+				playerCollider.setOutlineColor(sf::Color(255, 0, 0));
+
+				npc_polygon[0].color = sf::Color(255, 0, 255);
+				npc_polygon[1].color = sf::Color(255, 0, 255);
+				npc_polygon[2].color = sf::Color(255, 0, 255);
+			}
+			else
+			{
+				npc_polygon[0].color = sf::Color(255, 255, 255);
+				npc_polygon[1].color = sf::Color(255, 255, 255);
+				npc_polygon[2].color = sf::Color(255, 255, 255);
+			}
+
+			int hit = c2RaytoAABB(ray_npc, aabb_player, &ray_npc_cast);
+			std::cout << ((hit != 0) ? ("AABB to Ray Collision") : "") << endl;
+			if (hit)
+			{
+				playerCollider.setOutlineColor(sf::Color(255, 0, 0));
+				npc_ray->color = sf::Color::Blue;
+			}
+			else
+			{
+				npc_ray->color = sf::Color::White;
+			}
 		}
-		else
+	//Circle collisions
+		if (playerState == CIRCLE)
 		{
-			playerCollider.setOutlineColor(sf::Color(0, 255, 0));
-			npc_capsuleRect.setFillColor(sf::Color(255, 255, 255));
-			npc_capsuleCircleLeft.setFillColor(sf::Color(255, 255, 255));
-			npc_capsuleCircleRight.setFillColor(sf::Color(255, 255, 255));
+			circle_to_aabb = c2CircletoAABB(circle_player, aabb_npc);
+			std::cout << ((circle_to_aabb != 0) ? ("Circle to AABB Collision") : "") << endl;
+			if (circle_to_aabb) 
+			{				
+				player_circle.setFillColor(sf::Color(255, 0, 0));
+				npcCollider.setOutlineColor(sf::Color(255, 0, 0));
+			}
+			else {
+				player_circle.setFillColor(sf::Color(255, 255, 255));
+				npcCollider.setOutlineColor(sf::Color(255, 0, 0));
+			}
+
+			circle_to_capsule = c2CircletoCapsule(circle_player, capsule_npc);
+			std::cout << ((circle_to_capsule != 0) ? ("Circle to Capsule Collision") : "") << endl;
+			if (circle_to_capsule)
+			{
+				player_circle.setFillColor(sf::Color(255, 0, 0));
+				npc_capsuleRect.setFillColor(sf::Color(0, 255, 255));
+				npc_capsuleCircleLeft.setFillColor(sf::Color(0, 255, 255));
+				npc_capsuleCircleRight.setFillColor(sf::Color(0, 255, 255));
+				
+			}
+			else {
+				player_circle.setFillColor(sf::Color(255, 255, 255));
+				npc_capsuleRect.setFillColor(sf::Color(255, 255, 255));
+				npc_capsuleCircleLeft.setFillColor(sf::Color(255, 255, 255));
+				npc_capsuleCircleRight.setFillColor(sf::Color(255, 255, 255));
+			}
+
+			circle_to_poly = c2CircletoPoly(circle_player, &poly_npc, NULL);
+			std::cout << ((circle_to_poly != 0) ? ("Circle to Capsule Collision") : "") << endl;
+			if (circle_to_poly)
+			{
+				player_circle.setFillColor(sf::Color(255, 0, 0));
+				npc_polygon[0].color = sf::Color(255, 0, 255);
+				npc_polygon[1].color = sf::Color(255, 0, 255);
+				npc_polygon[2].color = sf::Color(255, 0, 255);
+
+			}
+			else {
+				player_circle.setFillColor(sf::Color(255, 255, 255));
+				npc_polygon[0].color = sf::Color(255, 255, 255);
+				npc_polygon[1].color = sf::Color(255, 255, 255);
+				npc_polygon[2].color = sf::Color(255, 255, 255);
+			}
+
+
 		}
 
-		aabb_to_poly = c2AABBtoPoly(aabb_player, &poly_npc, NULL);
-		std::cout << ((aabb_to_poly != 0) ? ("AABB to Poly	Collision") : "") << endl;
-		if(aabb_to_poly)
-		{
-			playerCollider.setOutlineColor(sf::Color(255, 0, 0));
-			
-			npc_polygon[0].color= sf::Color(255, 0, 255);
-			npc_polygon[1].color = sf::Color(255, 0, 255);
-			npc_polygon[2].color = sf::Color(255, 0, 255);
-		}
-		else
-		{
-			npc_polygon[0].color = sf::Color(255, 255, 255);
-			npc_polygon[1].color = sf::Color(255, 255, 255);
-			npc_polygon[2].color = sf::Color(255, 255, 255);
-		}
-
-		int hit = c2RaytoAABB(ray_npc, aabb_player, &ray_npc_cast);
-		std::cout << ((hit != 0) ? ("AABB to Ray	Collision") : "") << endl;
-		if(hit)
-		{
-			playerCollider.setOutlineColor(sf::Color(255, 0, 0));
-			npc_ray->color = sf::Color::Blue;
-		}
-		else
-		{
-			npc_ray->color = sf::Color::White;
-		}
+	
+		
 
 		
 		
 		// Clear screen
 		window.clear();
 
-		//Draw the Players Current Animated Sprite
-		window.draw(player.getAnimatedSprite());
-		window.draw(playerCollider);
+		if (playerState == AABB)
+		{
+			window.draw(playerCollider);
+		}
+		if (playerState == CIRCLE)
+		{
+			window.draw(player_circle);
+		}
+		if (playerState == RAY)
+		{
+			window.draw(player_ray, 2, sf::Lines);
+		}
+		////Draw the Players Current Animated Sprite
+		//window.draw(player.getAnimatedSprite());
+		
 		window.draw(npcCollider);
 		//drawing NPC capsule
 		window.draw(npc_capsuleRect);
